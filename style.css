@@ -221,7 +221,7 @@ box-shadow:0 0 15px #ff9500;
 
 }
 
-.menu button:nth-child(6){
+.menu button:nth-child(5){
 
 background:#ff3333;
 box-shadow:0 0 15px #ff3333;
@@ -231,6 +231,16 @@ box-shadow:0 0 15px #ff3333;
 button:hover{
 
 transform:scale(1.08);
+
+}
+
+.menu button:last-child{
+
+background:#ff0000;
+
+box-shadow:0 0 15px #ff0000;
+
+color:white;
 
 }
 
