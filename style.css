@@ -109,6 +109,19 @@ font-weight: bold;
 transform: scale(1.08);
 }
 
+/* Admin Panel Button - Purple */
+#adminBtn {
+    background: linear-gradient(45deg, #8a2be2, #bf40bf); /* Purple gradient */
+    color: white;
+    box-shadow: 0 0 20px #8a2be2, 0 0 30px #bf40bf; /* Glow effect */
+    font-weight: bold;
+    border: 2px solid #6600ff;
+}
+
+#adminBtn:hover {
+    transform: scale(1.1);
+}
+
 /* CONTENT BOX */
 #content{
 border:3px solid;
