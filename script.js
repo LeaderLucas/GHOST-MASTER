@@ -169,22 +169,22 @@ function openPage(page){
         </div>`;
     }
 
-    /* ADMIN PANEL */
-    if(page==="admin"){
-        document.getElementById("title").innerHTML="Admin Panel";
-        content.innerHTML=`
-        <h3>Add Member</h3>
-        <input id="newName" placeholder="Name">
-        <input id="newRank" placeholder="Rank">
-        <input id="newLevel" placeholder="Level">
-        <input id="newPass" placeholder="Password">
-        <button onclick="addMember()">Add Member</button>
+ /* ADMIN PANEL */
+if(page==="admin"){
+    document.getElementById("title").innerHTML="Admin Panel";
+    content.innerHTML=`
+    <h3>Add Member</h3>
+    <input id="newName" placeholder="Name">
+    <input id="newRank" placeholder="Rank">
+    <input id="newLevel" placeholder="Level">
+    <input id="newPass" placeholder="Password">
+    <button class="addMemberBtn" onclick="addMember()">Add Member</button>
 
-        <h3>Update Contribution</h3>
-        <input id="memberIndex" placeholder="Member Number">
-        <input id="depositAmount" placeholder="Deposit">
-        <button onclick="addDeposit()">Add Deposit</button>`;
-    }
+    <h3>Update Contribution</h3>
+    <input id="memberIndex" placeholder="Member Number">
+    <input id="depositAmount" placeholder="Deposit">
+    <button class="addDepositBtn" onclick="addDeposit()">Add Deposit</button>`;
+}
 }
 
 function showProfile(i){
