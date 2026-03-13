@@ -84,23 +84,20 @@ if(page==="members"){
 
 document.getElementById("title").innerHTML="Members"
 
-let html="<table><tr><th>Name</th><th>Rank</th><th>Level</th></tr>"
+let html="<table><tr><th>S. No.</th><th>Name</th><th>Rank</th><th>Lvl</th></tr>"
 
 members.forEach((m,i)=>{
 
 let name=m.name
 
 if(user.rank>=7){
-
 name=`<span class="rainbowName" onclick="showProfile(${i})">${m.name}</span>`
-
 }else{
-
 name=`<span class="rainbowName">${m.name}</span>`
-
 }
 
 html+=`<tr>
+<td>${i+1}</td>
 <td>${name}</td>
 <td>${m.rank}</td>
 <td>${m.level}</td>
