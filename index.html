@@ -1,44 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Ghost Master Family</title>
-<link rel="stylesheet" href="style.css">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
+// USERS
+let users = [
+    {name: "admin", rank: 5, password: "1234"},
+    {name: "deputy", rank: 4, password: "1234"},
+    {name: "member", rank: 1, password: "1234"}
+];
 
-<!-- LOGIN PAGE -->
-<div id="loginPage">
-    <h1>Ghost Master Family</h1>
-    <input id="name" placeholder="Game Name">
-    <input id="rank" placeholder="Rank">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">LOGIN</button>
-</div>
+let currentUser = null;
 
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none">
-    <h2 id="welcome"></h2>
-    <div class="menu">
-        <button onclick="openPage('members')">Members</button>
-        <button onclick="openPage('players')">Players Info</button>
-        <button onclick="openPage('warRules')">Family War Rules</button>
-        <button id="deputyBtn" onclick="openPage('deputyRules')">Deputy Rules</button>
-        <button onclick="openPage('staffRules')">Senior Staff Rules</button>
-        <button onclick="openPage('warning')">Warning</button>
-        <button id="adminBtn" onclick="openPage('admin')">Admin Panel</button>
-        <button onclick="logout()">Logout</button>
-    </div>
-</div>
+// 🔊 SOUND FUNCTION
+function playClick(){
+    let sound = document.getElementById("clickSound");
+    if(sound){
+        sound.currentTime = 0;
+        sound.play();
+    }
+}
 
-<!-- PAGE CONTENT -->
-<div id="page" style="display:none">
-    <h2 id="title"></h2>
-    <div id="content"></div>
-    <button id="backBtn" onclick="back()">Back</button>
-</div>
+// LOGIN FUNCTION
+function login() {
+    playClick();
 
-<script src="script.js"></script>
-</body>
-</html>
+    let name = document.getElementById("name").value;
+    let rank = parseInt(document.getElementById("rank").value);
+    let password = document.getElementById("password").value;
+
+    let user = users.find(u => u.name === name && u.rank === rank && u.password === password);
+
+    if (user) {
+        currentUser = user;
+
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+
+        // 👑 Crown for Admin
+        let crown = user.rank === 5 ? " 👑" : "";
+        document.getElementById("welcome").innerText = "Welcome, " + user.name + crown;
+
+        // Reset buttons
+        document.getElementById("adminBtn").style.display = "inline-block";
+        document.getElementById("deputyBtn").style.display = "inline-block";
+
+        // Access Control
+        if (user.rank < 5) {
+            document.getElementById("adminBtn").style.display = "none";
+        }
+        if (user.rank < 4) {
+            document.getElementById("deputyBtn").style.display = "none";
+        }
+
+    } else {
+        alert("Invalid Login ❌");
+    }
+}
+
+// OPEN PAGE
+function openPage(page) {
+    playClick();
+
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("page").style.display = "block";
+
+    let title = document.getElementById("title");
+    let content = document.getElementById("content");
+
+    if (page === "members") {
+        title.innerText = "Members";
+
+        let html = "";
+        users.forEach((u,i)=>{
+            let crown = u.rank === 5 ? " 👑" : "";
+            html += `<p>${i+1}. ${u.name}${crown} (Rank: ${u.rank})</p>`;
+        });
+
+        content.innerHTML = html;
+    }
+
+    else if (page === "players") {
+        title.innerText = "Players Info";
+        content.innerHTML = "Players info coming soon...";
+    }
+
+    else if (page === "warRules") {
+        title.innerText = "Family War Rules";
+        content.innerHTML = "1. Follow rules<br>2. No cheating";
+    }
+
+    else if (page === "deputyRules") {
+        title.innerText = "Deputy Rules";
+        content.innerHTML = "Deputy must manage members.";
+    }
+
+    else if (page === "staffRules") {
+        title.innerText = "Senior Staff Rules";
+        content.innerHTML = "Staff must be active.";
+    }
+
+    else if (page === "warning") {
+        title.innerText = "Warning System";
+        content.innerHTML = "3 warnings = kick!";
+    }
+
+    else if (page === "admin") {
+        title.innerText = "Admin Panel";
+        content.innerHTML = "Admin controls here.";
+    }
+}
+
+// BACK BUTTON
+function back() {
+    playClick();
+
+    document.getElementById("page").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+}
+
+// LOGOUT
+function logout() {
+    playClick();
+
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("loginPage").style.display = "block";
+
+    document.getElementById("name").value = "";
+    document.getElementById("rank").value = "";
+    document.getElementById("password").value = "";
+}
