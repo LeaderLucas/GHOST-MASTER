@@ -83,9 +83,12 @@ function login(){
 
 // ================= LOGOUT =================
 function logout(){
- localStorage.removeItem("currentUser");
- localStorage.removeItem("currentRank");
- location.reload();
+if(!localStorage.getItem("users")){
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+if(!localStorage.getItem("members")){
+  localStorage.setItem("members", JSON.stringify(members));
 }
 
 // ================= PAGE SWITCH =================
