@@ -10,16 +10,19 @@ let users = JSON.parse(localStorage.getItem("users")) || [
 localStorage.setItem("users", JSON.stringify(users));
 
 // AUTO LOGIN
-window.onload = function(){
- let user = localStorage.getItem("currentUser");
- let rank = localStorage.getItem("currentRank");
+ window.onload = function(){
 
- if(user){
-    document.querySelector(".login-container").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("userInfo").innerText =
-    user + " (Rank " + rank + ")";
+ let user = localStorage.getItem("currentUser");
+ let rank = parseInt(localStorage.getItem("currentRank"));
+
+ if(!user){
+   document.getElementById("leaderPage").style.display = "none";
  }
+
+ if(rank < 6){
+   document.getElementById("leaderPage").style.display = "none";
+ }
+
 }
 
 // LOGIN
