@@ -34,33 +34,43 @@ const rankMap = {
 function getRankNumber(rankName){
  return rankMap[rankName] || 1;
 }
-
 // ================= AUTO LOGIN =================
 window.onload = function(){
 
-localStorage.removeItem("members");
-  localStorage.removeItem("users");
- let user = localStorage.getItem("currentUser");
- let rank = parseInt(localStorage.getItem("currentRank"));
-
- if(user){
-  document.querySelector(".login-container").style.display="none";
-  document.getElementById("dashboard").style.display="block";
-  document.getElementById("userInfo").innerText =
-  user + " (Rank " + rank + ")";
-
-  if(rank >= 6) document.getElementById("leaderBtn").style.display="block";
-
-  if(rank >= 9){
-    document.getElementById("adminBtn").style.display="block";
-  }else{
-    document.getElementById("adminBtn").style.display="none";
+  // ✅ FIRST TIME DATA SAVE (delete nahi hoga)
+  if(!localStorage.getItem("users")){
+    localStorage.setItem("users", JSON.stringify(users));
   }
 
-  showReports("all");
- }
+  if(!localStorage.getItem("members")){
+    localStorage.setItem("members", JSON.stringify(members));
+  }
 
- loadTasks();
+  // ✅ LOAD DATA FROM STORAGE
+  users = JSON.parse(localStorage.getItem("users"));
+  members = JSON.parse(localStorage.getItem("members"));
+
+  let user = localStorage.getItem("currentUser");
+  let rank = parseInt(localStorage.getItem("currentRank"));
+
+  if(user){
+    document.querySelector(".login-container").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+    document.getElementById("userInfo").innerText =
+    user + " (Rank " + rank + ")";
+
+    if(rank >= 6) document.getElementById("leaderBtn").style.display="block";
+
+    if(rank >= 9){
+      document.getElementById("adminBtn").style.display="block";
+    }else{
+      document.getElementById("adminBtn").style.display="none";
+    }
+
+    showReports("all");
+  }
+
+  loadTasks();
 };
 // ================= LOGIN =================
 function login(){
@@ -83,12 +93,7 @@ function login(){
 
 // ================= LOGOUT =================
 function logout(){
-if(!localStorage.getItem("users")){
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
-if(!localStorage.getItem("members")){
-  localStorage.setItem("members", JSON.stringify(members));
+ location.reload();
 }
 
 // ================= PAGE SWITCH =================
@@ -762,13 +767,7 @@ function addWarning(){
 
 // LOAD WARNINGS
 function loadWarnings(){
-  let box = document.getElementById("warningTable");
-  if(!box) return;
-
-  box.innerHTML = "";
-
-  let warnings = getWarnings();
-  let currentRank = parseInt(localStorage.getItem("currentRank"));
+  let box = document.getItem("currentRank"));
 
   warnings.forEach((w,i)=>{
 
