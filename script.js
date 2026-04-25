@@ -812,3 +812,16 @@ function deleteWarning(i){
   saveWarnings(warnings);
   loadWarnings();
 }
+// ===== PASSWORD TOGGLE =====
+function togglePass(){
+  let pass = document.getElementById("password");
+  let eye = document.getElementById("eyeIcon");
+
+  if(pass.type === "password"){
+    pass.type = "text";
+    eye.innerHTML = "👁️";
+  }else{
+    pass.type = "password";
+    eye.innerHTML = "🙈";
+  }
+}
