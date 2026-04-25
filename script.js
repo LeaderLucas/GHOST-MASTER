@@ -41,6 +41,16 @@ function login(){
  location.reload();
 }
 
+function openLeaderPage(){
+ let rank = parseInt(localStorage.getItem("currentRank"));
+
+ if(rank < 6){
+   alert("Access Denied ❌");
+   return;
+ }
+
+ openPage("leaderPage");
+}
 // LOGOUT
 function logout(){
  localStorage.removeItem("currentUser");
