@@ -76,12 +76,13 @@ function togglePass(){
 function openPage(id){
     let rank = parseInt(localStorage.getItem("currentRank"));
     if(id === "leaderPage" && rank < 6) return alert("No Permission");
-    if(id === "dbPage") loadLogs();
+    
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     document.getElementById("dashboard").style.display = "none";
     document.getElementById(id).style.display = "block";
 
     if(id === "memberPage") loadMembers();
+    if(id === "dbPage") loadLogs();
 }
 
 function goBack(){
