@@ -77,7 +77,11 @@
 
   <button id="leaderBtn" class="btn btn6" onclick="openPage('leaderPage')">Leader Panel</button>
   <button id="adminBtn" onclick="openAdminPanel()">Admin Panel</button>
-        <button class="btn btn8" onclick="openPage('reportPage')">Red Report</button>
+      <!-- DATABASE BUTTON (ONLY OWNER) -->
+<button id="dbBtn" class="btn btn7" onclick="openPage('dbPage')" style="display:none;">
+    Database
+</button>
+         <button class="btn btn8" onclick="openPage('reportPage')">Red Report</button>
         <button class="btn logout" onclick="logout()">Logout</button>
     </div>
 </div>
@@ -313,6 +317,16 @@
 
 <tbody id="warningTable"></tbody>
 </table>
+
+<button class="back-btn" onclick="goBack()">⬅ Back</button>
+
+</div> 
+     <!-- DATABASE PAGE -->
+<div id="dbPage" class="page" style="display:none;">
+
+<h2 class="title">📊 DATABASE LOG</h2>
+
+<div id="dbLogs"></div>
 
 <button class="back-btn" onclick="goBack()">⬅ Back</button>
 
