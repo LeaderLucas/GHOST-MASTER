@@ -1,736 +1,183 @@
-// ================= USERS =================
+// ================= DATA & INITIALIZATION =================
 let users = JSON.parse(localStorage.getItem("users")) || [
-{name:"Lucas_Arora", password:"lucas9389", rank:15},
-{name:"Aarushkumar_Kumar", password:"arush8888", rank:14},
-{name:"Mannu_Mehra", password:"mannu7673", rank:6},
-
+    {name:"Lucas_Arora", password:"lucas9389", rank:15},
+    {name:"Aarushkumar_Kumar", password:"arush8888", rank:14},
+    {name:"Mannu_Mehra", password:"mannu7777", rank:6}
 ];
 
-// ================= MEMBERS =================
 let members = JSON.parse(localStorage.getItem("members")) || [
-{name:"Lucas_Arora", rank:"Owner", level:40, password:"lucas9389", money:0, war:0, verified:true},
-{name:"Aarushkumar_Kumar", rank:"Assistant Owner", level:36, password:"arush8888", money:0, war:0, verified:true},
-{name:"Mannu_Mehra", rank:"Deputy Leader", level:7, password:"mannu7777", money:0, war:0, verified:true},
-
+    {name:"Lucas_Arora", rank:"Owner", level:4, money:0, war:0, verified:true},
+    {name:"Aarushkumar_Kumar", rank:"Assistant Owner", level:36, money:0, war:0, verified:true},
+    {name:"Mannu_Mehra", rank:"Deputy Leader", level:22, money:0, war:0, verified:true}
 ];
-// ================= RANK MAP =================
+
 const rankMap = {
-"Unverified":1,
-"Verified":2,
-"Subscribe":3,
-"Sr Member":4,
-"Manager":5,
-"Deputy Leader":6,
-"Leader":7,
-"Admin Level 1":9,
-"Admin Level 2":10,
-"Admin Level 3":11,
-"Curator":12,
-"Sr Curator":13,
-"Assistant Owner":14,
-"Owner":15
+    "Unverified":1, "Verified":2, "Subscribe":3, "Sr Member":4, "Manager":5,
+    "Deputy Leader":6, "Leader":7, "Admin Level 1":9, "Admin Level 2":10,
+    "Admin Level 3":11, "Curator":12, "Sr Curator":13, "Assistant Owner":14, "Owner":15
 };
 
-function getRankNumber(rankName){
- return rankMap[rankName] || 1;
-}
-// ================= AUTO LOGIN =================
+function getRankNumber(n){ return rankMap[n] || 1; }
+
 window.onload = function(){
+    if(!localStorage.getItem("users")) localStorage.setItem("users", JSON.stringify(users));
+    if(!localStorage.getItem("members")) localStorage.setItem("members", JSON.stringify(members));
 
-  // ✅ FIRST TIME DATA SAVE (delete nahi hoga)
-  if(!localStorage.getItem("users")){
-    localStorage.setItem("users", JSON.stringify(users));
-  }
+    let user = localStorage.getItem("currentUser");
+    let rank = parseInt(localStorage.getItem("currentRank"));
 
-  if(!localStorage.getItem("members")){
-    localStorage.setItem("members", JSON.stringify(members));
-  }
-
-  // ✅ LOAD DATA FROM STORAGE
-  users = JSON.parse(localStorage.getItem("users"));
-  members = JSON.parse(localStorage.getItem("members"));
-
-  let user = localStorage.getItem("currentUser");
-  let rank = parseInt(localStorage.getItem("currentRank"));
-
-  if(user){
-    document.querySelector(".login-container").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("userInfo").innerText =
-    user + " (Rank " + rank + ")";
-
-    if(rank >= 6) document.getElementById("leaderBtn").style.display="block";
-
-    if(rank >= 9){
-      document.getElementById("adminBtn").style.display="block";
-    }else{
-      document.getElementById("adminBtn").style.display="none";
+    if(user){
+        document.querySelector(".login-container").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("userInfo").innerText = `${user} (Rank ${rank})`;
+        
+        if(document.getElementById("leaderBtn")) 
+            document.getElementById("leaderBtn").style.display = (rank >= 6) ? "block" : "none";
+        if(document.getElementById("adminBtn")) 
+            document.getElementById("adminBtn").style.display = (rank >= 9) ? "block" : "none";
+        
+        showReports("all");
     }
-
-    showReports("all");
-  }
-
-  loadTasks();
+    loadTasks();
+    loadWarnings();
 };
-// ================= LOGIN =================
+
+// ================= AUTHENTICATION =================
 function login(){
- let n = document.getElementById("name").value.trim();
- let r = document.getElementById("rank").value;
- let p = document.getElementById("password").value;
- let msg = document.getElementById("msg");
+    let n = document.getElementById("name").value.trim();
+    let r = parseInt(document.getElementById("rank").value);
+    let p = document.getElementById("password").value;
 
- let user = users.find(u => u.name === n);
-
- if(!user){ msg.innerText = "Name Wrong"; return; }
- if(user.rank !== parseInt(r)){ msg.innerText = "Rank Wrong"; return; }
- if(user.password !== p){ msg.innerText = "Password Wrong"; return; }
-
- localStorage.setItem("currentUser", n);
- localStorage.setItem("currentRank", user.rank);
-
- location.reload();
+    let user = users.find(u => u.name === n && u.rank === r && u.password === p);
+    if(user){
+        localStorage.setItem("currentUser", n);
+        localStorage.setItem("currentRank", r);
+        location.reload();
+    } else {
+        document.getElementById("msg").innerText = "Invalid Credentials!";
+    }
 }
 
-// ================= LOGOUT =================
 function logout(){
- localStorage.removeItem("currentUser");
- localStorage.removeItem("currentRank");
- location.reload();
+    localStorage.clear();
+    location.reload();
 }
-// ================= PAGE SWITCH =================
+
+function togglePass(){
+    let p = document.getElementById("password");
+    let open = document.getElementById("eyeOpen");
+    let close = document.getElementById("eyeClose");
+    p.type = (p.type === "password") ? "text" : "password";
+    open.style.display = (p.type === "password") ? "block" : "none";
+    close.style.display = (p.type === "password") ? "none" : "block";
+}
+
+// ================= NAVIGATION =================
 function openPage(id){
+    let rank = parseInt(localStorage.getItem("currentRank"));
+    if(id === "leaderPage" && rank < 6) return alert("No Permission");
+    if(id === "dbPage") loadLogs();
+    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById(id).style.display = "block";
 
- let currentRank = parseInt(localStorage.getItem("currentRank"));
-
- // 🚫 Leader page security
- if(id === "leaderPage" && currentRank < 6){
-   alert("Access Denied");
-   return;
- }
-
- document.querySelectorAll(".page").forEach(p=>p.style.display="none");
- document.getElementById("dashboard").style.display="none";
- document.getElementById(id).style.display="block";
-
- if(id==="memberPage") loadMembers();
- if(id==="taskPage") loadTasks();
- if(id==="warningPage") loadWarnings();
+    if(id === "memberPage") loadMembers();
 }
-// ================= BACK =================
+
 function goBack(){
- document.querySelectorAll(".page").forEach(p=>p.style.display="none");
- document.getElementById("dashboard").style.display="block";
+    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+    document.getElementById("dashboard").style.display = "block";
 }
 
-// ================= REPORT SYSTEM =================
-let reports = JSON.parse(localStorage.getItem("reports")) || [];
-
-function openCreate(){
- document.getElementById("createBox").style.display="block";
-}
-
-function submitReport(){
- let name = document.getElementById("playerName").value.trim();
- let reason = document.getElementById("reason").value.trim();
- let img = document.getElementById("imgLink").value;
-
- if(!name || !reason){
-  alert("Fill all fields");
-  return;
- }
-
- let valid = users.some(u => u.name.toLowerCase() === name.toLowerCase());
-
- if(!valid){
-  alert("Wrong Name");
-  return;
- }
-
- reports.push({
-  against: name,
-  by: localStorage.getItem("currentUser"),
-  reason: reason,
-  img: img,
-  reply: ""
- });
-
- localStorage.setItem("reports", JSON.stringify(reports));
-
- document.getElementById("playerName").value = "";
- document.getElementById("reason").value = "";
- document.getElementById("imgLink").value = "";
-
- document.getElementById("createBox").style.display="none";
-
- showReports("all");
-}
-
-function showReports(type){
- let box = document.getElementById("reportList");
- box.innerHTML = "";
-
- let currentUser = localStorage.getItem("currentUser");
- let currentRank = parseInt(localStorage.getItem("currentRank"));
-
- reports.forEach((r,i)=>{
-  if(
-   type==="all" ||
-   (type==="against" && r.against===currentUser) ||
-   (type==="by" && r.by===currentUser)
-  ){
-   box.innerHTML += `
-   <div class="report-card">
-   <p><b>Against:</b> ${r.against}</p>
-   <p><b>By:</b> ${r.by}</p>
-   <p><b>Reason:</b> ${r.reason}</p>
-
-   ${currentRank>=10 ? `<a href="${r.img}" target="_blank">Image</a>`:""}
-
-   ${
-      currentRank>=11 && (!r.reply || currentRank===15)
-      ? `<button onclick="reply(${i})">Reply</button>`
-      : ""
-   }
-
-   ${currentRank>=14 ? `<button onclick="deleteReport(${i})">Delete</button>`:""}
-
-   ${r.reply ? `<div class="reply">${r.reply}</div>`:""}
-   </div>`;
-  }
- });
-}
-function reply(i){
- let text = prompt("Reply:");
- if(!text) return;
-
- reports[i].reply = text;
- localStorage.setItem("reports", JSON.stringify(reports));
- showReports("all");
-}
-
-function deleteReport(i){
- if(confirm("Delete?")){
-  reports.splice(i,1);
-  localStorage.setItem("reports", JSON.stringify(reports));
-  showReports("all");
- }
-}
-
-// ================= MEMBERS =================
+// ================= MEMBER & WAR SYSTEM =================
 function loadMembers(){
-  let box = document.getElementById("memberTable");
-  box.innerHTML = "";
+    let box = document.getElementById("memberTable");
+    box.innerHTML = "";
+    let rank = parseInt(localStorage.getItem("currentRank"));
 
-  let currentRank = parseInt(localStorage.getItem("currentRank"));
+    members.forEach((m, i) => {
+        let btns = (rank >= 10) ? `<button onclick="updateWar(${i},'add')">+ War</button>` : "-";
+        if(rank >= 11) btns += ` <button onclick="updateWar(${i},'remove')">- War</button>`;
+        if(rank === 15) btns += ` <button onclick="deleteMember(${i})">Delete</button>`;
 
-  members.forEach((m,i)=>{
+        box.innerHTML += `<tr>
+            <td>${m.name}</td>
 
-    let actionButtons = "";
+            <!-- ✅ VERIFIED COLOR -->
+            <td class="${m.verified ? 'yes' : 'no'}">
+                ${m.verified ? "YES" : "NO"}
+            </td>
 
-    if(currentRank > 9 && currentRank <= 10){
-      actionButtons = `
-        <button class="war-btn add" onclick="updateWar(${i},'add')">+ Add</button>
-        <button disabled>- Remove</button>
-      `;
-    }
-    else if(currentRank > 10 && currentRank < 15){
-      actionButtons = `
-        <button class="war-btn add" onclick="updateWar(${i},'add')">+ Add</button>
-        <button class="war-btn remove" onclick="updateWar(${i},'remove')">- Remove</button>
-      `;
-    }
-    else if(currentRank === 15){
-      actionButtons = `
-        <button class="war-btn add" onclick="updateWar(${i},'add')">+ Add</button>
-        <button class="war-btn remove" onclick="updateWar(${i},'remove')">- Remove</button>
-        <button class="delete-btn" onclick="deleteMember(${i})">Delete</button>
-      `;
-    }
+            <!-- ✅ RANK COLOR -->
+            <td class="rank rank-${getRankNumber(m.rank)}">
+                ${m.rank}
+            </td>
 
-    box.innerHTML += `
-    <tr>
-      <td>${m.name}</td>
- <td class="${m.verified ? 'yes' : 'no'}">
-  ${m.verified ? "YES":"NO"}
-</td>
-      <td class="rank rank-${getRankNumber(m.rank)}">${m.rank}</td>
-      <td>${m.money}</td>
-      <td>${m.war}</td>
-      <td>-</td>
-      <td>${actionButtons}</td>
-    </tr>`;
-  });
+            <td>${m.money}</td>
+            <td>${m.war}</td>
+            <td>-</td>
+            <td>${btns}</td>
+        </tr>`;
+    });
 }
-function updateWar(i,action){
- let rank = parseInt(localStorage.getItem("currentRank"));
+function updateWar(i, action){
 
- if(rank <= 9){
-  alert("No Permission");
-  return;
+ let user = localStorage.getItem("currentUser");
+
+ if(action === 'add'){
+   members[i].war++;
+   addLog(`${user} added war to ${members[i].name}`);
  }
 
- if(rank <= 10 && action === "remove"){
-  alert("Remove Not Allowed");
-  return;
+ else if(members[i].war > 0){
+   members[i].war--;
+   addLog(`${user} removed war from ${members[i].name}`);
  }
-
- if(action==="add") members[i].war++;
- if(action==="remove" && members[i].war>0) members[i].war--;
 
  localStorage.setItem("members", JSON.stringify(members));
  loadMembers();
 }
-
-function deleteMember(i){
- let rank = parseInt(localStorage.getItem("currentRank"));
-
- if(rank !== 15){
-  alert("Only Owner Can Delete");
-  return;
- }
-
- if(confirm("Are you sure to delete this member?")){
-  members.splice(i,1);
-  localStorage.setItem("members", JSON.stringify(members));
-  loadMembers();
- }
-}
 // ================= TASK SYSTEM =================
-
-function getTasks(){
-  return JSON.parse(localStorage.getItem("tasks")) || [];
-}
-
-function saveTasks(tasks){
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-// ================= ADD TASK =================
-function addTask(){
-  let name = prompt("Enter Name:");
-  let taskText = prompt("Enter Task:");
-  let due = prompt("Enter Due Date:");
-
-  if(!name || !taskText){
-    alert("Fill all fields");
-    return;
-  }
-
-  let currentUser = localStorage.getItem("currentUser");
-  let currentRank = parseInt(localStorage.getItem("currentRank"));
-
-  if(name.toLowerCase() !== currentUser.toLowerCase()){
-    alert("Wrong name");
-    return;
-  }
-
-  let tasks = getTasks();
-
-  tasks.push({
-    name,
-    task: taskText,
-    due: due || "-",
-    status:"⏳ Not started",
-    approvedBy:"-",
-    creatorRank: currentRank,
-    locked:false
-  });
-
-  saveTasks(tasks);
-  loadTasks();
-}
-
-// ================= PERMISSION SYSTEM =================
-function canChangeStatus(task){
-  let currentRank = parseInt(localStorage.getItem("currentRank"));
-
-  // Owner full control
-  if(currentRank === 15) return true;
-
-  // Locked → no change
-  if(task.locked) return false;
-
-  let cr = task.creatorRank;
-
-  // 1–5 → only 6 & 7
-  if(cr >=1 && cr <=5){
-    return currentRank === 6 || currentRank === 7;
-  }
-
-  // 6–10 → only 12 & 13
-  if(cr >=6 && cr <=10){
-    return currentRank === 12 || currentRank === 13;
-  }
-
-  // 11–13 → only 14+
-  if(cr >=11 && cr <=13){
-    return currentRank >=14;
-  }
-
-  return false;
-}
-
-// ================= STATUS CLASS =================
-function getStatusClass(status){
-  if(status==="✏️ In progress") return "status-progress";
-  if(status==="⛔ Blocked") return "status-blocked";
-  if(status==="👀 Under review") return "status-review";
-  if(status==="✅ Completed") return "status-done";
-  return "status-not";
-}
-
-// ================= LOAD TASKS =================
 function loadTasks(){
-  let box = document.getElementById("taskTable");
-  if(!box) return;
-
-  box.innerHTML = "";
-
-  let tasks = getTasks();
-  let currentRank = parseInt(localStorage.getItem("currentRank"));
-
-  tasks.forEach((t,i)=>{
-
-    let disabled = !canChangeStatus(t) ? "disabled" : "";
-    let statusClass = getStatusClass(t.status);
-
-    box.innerHTML += `
-    <tr>
-      <td>${t.name}</td>
-      <td>${t.task}</td>
-      <td>${t.approvedBy}</td>
-      <td>${t.due}</td>
-
-      <td>
-        ${
-          disabled
-          ? `<span class="${statusClass}">${t.status}</span>`
-          : `
-          <select class="${statusClass}" onchange="updateStatus(${i},this.value)">
-            <option ${t.status==="⏳ Not started"?"selected":""}>⏳ Not started</option>
-            <option ${t.status==="✏️ In progress"?"selected":""}>✏️ In progress</option>
-            <option ${t.status==="⛔ Blocked"?"selected":""}>⛔ Blocked</option>
-            <option ${t.status==="👀 Under review"?"selected":""}>👀 Under review</option>
-            <option ${t.status==="✅ Completed"?"selected":""}>✅ Completed</option>
-          </select>`
-        }
-      </td>
-
-      <td>
-        ${
-          currentRank === 15
-          ? `<button class="delete-btn" onclick="deleteTask(${i})">❌</button>`
-          : "-"
-        }
-      </td>
-    </tr>`;
-  });
-}
-
-// ================= UPDATE STATUS =================
-function updateStatus(i,newStatus){
-  let tasks = getTasks();
-  let currentUser = localStorage.getItem("currentUser");
-
-  let task = tasks[i];
-
-  if(!canChangeStatus(task)){
-    alert("No Permission");
-    return;
-  }
-
-  // First approval lock
-  if(!task.locked){
-    task.locked = true;
-  }
-
-  task.status = newStatus;
-  task.approvedBy = currentUser;
-
-  saveTasks(tasks);
-  loadTasks();
-}
-
-// ================= DELETE TASK =================
-function deleteTask(i){
-  let rank = parseInt(localStorage.getItem("currentRank"));
-
-  if(rank !== 15){
-    alert("Only Owner");
-    return;
-  }
-
-  if(!confirm("Are you sure to delete this task?")) return;
-
-  let tasks = getTasks();
-  tasks.splice(i,1);
-
-  saveTasks(tasks);
-  loadTasks();
-}
-//========== Leader Page ========
-function openLeaderSection(id){
-
- let rank = parseInt(localStorage.getItem("currentRank"));
-
- if(rank < 6){
-   alert("No Permission");
-   return;
- }
-
- document.getElementById("rankSection").style.display="none";
- document.getElementById("verifySection").style.display="none";
-
- document.getElementById(id).style.display="block";
-
- if(id==="rankSection") loadRankTable();
- if(id==="verifySection") loadVerifyTable();
-}
-
-// ===== LOAD RANK TABLE =====
-function loadRankTable(){
-    let box = document.getElementById("rankTable");
+    let box = document.getElementById("taskTable");
+    if(!box) return;
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    let rank = parseInt(localStorage.getItem("currentRank"));
     box.innerHTML = "";
 
-    members.forEach((m,i)=>{
-        box.innerHTML += `
-        <tr>
-            <td>${m.name}</td>
-            <td class="rank rank-${getRankNumber(m.rank)}">${m.rank}</td>
-            <td>
-                <select onchange="changeRank(${i},this.value)">
-                    ${
-                    [14,15].includes(parseInt(localStorage.getItem("currentRank")))
-                    ?
-                    `
-                    <option value="">Select Rank</option>
-                    <option value="Unverified">Unverified</option>
-                    <option value="Verified">Verified</option>
-                    <option value="Subscribe">Subscribe</option>
-                    <option value="Sr Member">Sr Member</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Deputy Leader">Deputy Leader</option>
-                    <option value="Leader">Leader</option>
-                    <option value="Admin Level 1">Admin Level 1</option>
-                    <option value="Admin Level 2">Admin Level 2</option>
-                    <option value="Admin Level 3">Admin Level 3</option>
-                    <option value="Curator">Curator</option>
-                    <option value="Sr Curator">Sr Curator</option>
-                    <option value="Assistant Owner">Assistant Owner</option>
-                    <option value="Owner">Owner</option>
-                    `
-                    :
-                    `
-                    <option value="">Select Rank</option>
-                    <option value="Verified">Verified</option>
-                    <option value="Subscribe">Subscribe</option>
-                    <option value="Sr Member">Sr Member</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Deputy Leader">Deputy Leader</option>
-                    `
-                    }
-                </select>
-            </td>
+    tasks.forEach((t, i) => {
+        let canEdit = (rank === 15 || (!t.locked && rank >= 6));
+        box.innerHTML += `<tr>
+            <td>${t.name}</td>
+            <td>${t.task}</td>
+            <td>${t.approvedBy}</td>
+            <td>${t.due}</td>
+            <td>${canEdit ? `<select onchange="updateStatus(${i},this.value)">
+                <option ${t.status==='⏳ Not started'?'selected':''}>⏳ Not started</option>
+                <option ${t.status==='✅ Completed'?'selected':''}>✅ Completed</option>
+            </select>` : t.status}</td>
+            <td>${rank === 15 ? `<button onclick="deleteTask(${i})">❌</button>` : "-"}</td>
         </tr>`;
     });
 }
 
-// ===== CHANGE RANK =====
-function changeRank(i,val){
-    if(val==="") return;
-
-    let currentRank = parseInt(localStorage.getItem("currentRank"));
-    let targetRank = getRankNumber(members[i].rank);
-
-    if(!(currentRank==6 || currentRank==7 || currentRank==14 || currentRank==15)){
-        alert("No Permission");
-        return;
-    }
-if((currentRank==6 || currentRank==7) && targetRank >= currentRank){
-    alert("You cannot edit same or higher rank user");
-    return;
-}
-
-    members[i].rank = val;
-
-    let userIndex = users.findIndex(u => u.name === members[i].name);
-    if(userIndex !== -1){
-        users[userIndex].rank = getRankNumber(val);
-    }
-
-    localStorage.setItem("members", JSON.stringify(members));
-    localStorage.setItem("users", JSON.stringify(users));
-
-    loadRankTable();
-    loadMembers();
-
-    alert("Rank Updated Successfully");
-}
-
-// ===== LOAD VERIFY TABLE =====
-function loadVerifyTable(){
-    let box = document.getElementById("verifyTable");
-    box.innerHTML = "";
-
-    members.forEach((m,i)=>{
-        box.innerHTML += `
-        <tr>
-            <td>${m.name}</td>
-            <td class="${m.verified ? 'verified-yes':'verified-no'}">
-                ${m.verified ? "YES":"NO"}
-            </td>
-            <td>
-                <select onchange="changeVerify(${i},this.value)">
-                    <option value="">Select</option>
-                    <option value="true">YES</option>
-                    <option value="false">NO</option>
-                </select>
-            </td>
-        </tr>`;
-    });
-}
-
-// ===== CHANGE VERIFY =====
-function changeVerify(i,val){
-    if(val==="") return;
-
-    let currentRank = parseInt(localStorage.getItem("currentRank"));
-    let targetRank = getRankNumber(members[i].rank);
-
-    if((currentRank==6 || currentRank==7) && targetRank >= currentRank){
-    alert("You cannot verify same or higher rank user");
-    return;
-}
-
-    if((currentRank==6 || currentRank==7) && targetRank>6){
-        alert("You can verify only rank 1 to 6");
-        return;
-    }
-
-    members[i].verified = (val==="true");
-
-    localStorage.setItem("members", JSON.stringify(members));
-
-    loadVerifyTable();
-    loadMembers();
-
-    alert("Verification Updated Successfully");
-}
-
-function getMemberRank(name){
-    let m = members.find(x => x.name === name);
-    return m ? m.rank : "Unverified";
-}
-// ======ADMIN PANNEL SAVE USERS====
-function saveUsers(){
- localStorage.setItem("users", JSON.stringify(users));
-}
-
-
-// OPEN ADMIN PANEL
-function openAdminPanel(){
- openPage("adminPage");
-
- let rank = parseInt(localStorage.getItem("currentRank"));
-
- document.getElementById("viewSection").style.display="block";
- document.getElementById("moneySection").style.display="none";
- document.getElementById("addSection").style.display="none";
-
- if(rank >= 10){
-   document.getElementById("moneySection").style.display="block";
- }
-
- if(rank >= 11){
-   document.getElementById("addSection").style.display="block";
- }
-
- loadAdminMembers();
-}
-
-// LOAD MEMBER LIST
-function loadAdminMembers(){
- let box=document.getElementById("adminMemberList");
- box.innerHTML="";
-
- members.forEach((m,i)=>{
-   box.innerHTML += `
-   <p>${i}. ${m.name} | ${m.rank} | ${m.money}</p>
-   `;
- });
-}
-
-// ADD MONEY
-function addMoney(){
- let rank=parseInt(localStorage.getItem("currentRank"));
-
- if(rank < 10){
-   alert("No Permission");
-   return;
- }
-
- let i=parseInt(document.getElementById("memberIndex").value);
- let amount=document.getElementById("depositAmount").value;
-
- if(!members[i]){
-   alert("Invalid Member");
-   return;
- }
-
- members[i].money=amount;
-
- localStorage.setItem("members", JSON.stringify(members));
- loadAdminMembers();
- alert("Money Added");
-}
-
-// ADD MEMBER
-async function addMember(){
- let rank=parseInt(localStorage.getItem("currentRank"));
-
- if(rank < 11){
-   alert("No Permission");
-   return;
- }
-
- let name=document.getElementById("newName").value.trim();
- let rankName=document.getElementById("newRank").value.trim();
- let password=document.getElementById("newPassword").value.trim();
-
- if(!name || !rankName || !password){
-   alert("Fill all");
-   return;
- }
-
- let rankNum = getRankNumber(rankName);
-
- members.push({
-  name: name,
-  verified: false,
-  rank: rankName,
-  money: 0,
-  war: 0
-});
- users.push({
-   name:name,
-   password:password,
-   rank:rankNum
- });
-
- localStorage.setItem("members", JSON.stringify(members));
- localStorage.setItem("users", JSON.stringify(users));
-
- loadAdminMembers();
-
- alert("Member Added Successfully");
+function updateStatus(i, status){
+    let tasks = JSON.parse(localStorage.getItem("tasks"));
+    tasks[i].status = status;
+    tasks[i].approvedBy = localStorage.getItem("currentUser");
+    if(status === '✅ Completed') tasks[i].locked = true;
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    loadTasks();
 }
 
 // ================= WARNING SYSTEM =================
 
+// GET WARNINGS
 function getWarnings(){
   return JSON.parse(localStorage.getItem("warnings")) || [];
 }
 
+// SAVE WARNINGS
 function saveWarnings(data){
   localStorage.setItem("warnings", JSON.stringify(data));
 }
@@ -785,12 +232,12 @@ function loadWarnings(){
       <td>${w.by}</td>
       <td>${w.date}</td>
       <td>
-  ${
-    currentRank >= 14
-    ? `<button onclick="deleteWarning(${i})">Delete</button>`
-    : "-"
-  }
-</td>
+        ${
+          currentRank >= 14
+          ? `<button onclick="deleteWarning(${i})">Delete</button>`
+          : "-"
+        }
+      </td>
     </tr>`;
   });
 }
@@ -811,17 +258,403 @@ function deleteWarning(i){
 
   saveWarnings(warnings);
   loadWarnings();
-}
-// ===== PASSWORD TOGGLE =====
-function togglePass(){
-  let pass = document.getElementById("password");
-  let eye = document.getElementById("eyeIcon");
+}// ================= REPORT SYSTEM =================
+let reports = JSON.parse(localStorage.getItem("reports")) || [];
 
-  if(pass.type === "password"){
-    pass.type = "text";
-    eye.innerHTML = "👁️";
-  }else{
-    pass.type = "password";
-    eye.innerHTML = "🙈";
-  }
+function openCreate(){
+    document.getElementById("createBox").style.display="block";
+}
+
+function submitReport(){
+    let name = document.getElementById("playerName").value.trim();
+    let reason = document.getElementById("reason").value.trim();
+    let img = document.getElementById("imgLink").value.trim();
+
+    if(!name || !reason){
+        alert("Please fill name and reason!");
+        return;
+    }
+
+    // Check if player exists in users list
+    let valid = users.some(u => u.name.toLowerCase() === name.toLowerCase());
+    if(!valid){
+        alert("This player does not exist in our database!");
+        return;
+    }
+
+    reports.push({
+        against: name,
+        by: localStorage.getItem("currentUser"),
+        reason: reason,
+        img: img || "No link provided",
+        reply: ""
+    });
+
+    localStorage.setItem("reports", JSON.stringify(reports));
+
+    // Reset fields
+    document.getElementById("playerName").value = "";
+    document.getElementById("reason").value = "";
+    document.getElementById("imgLink").value = "";
+    document.getElementById("createBox").style.display="none";
+
+    showReports("all");
+    alert("Report submitted successfully!");
+}
+
+function showReports(type){
+    let box = document.getElementById("reportList");
+    if(!box) return; 
+    box.innerHTML = "";
+
+    let currentUser = localStorage.getItem("currentUser");
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+
+    reports.forEach((r, i) => {
+        if(
+            type === "all" ||
+            (type === "against" && r.against === currentUser) ||
+            (type === "by" && r.by === currentUser)
+        ) {
+            box.innerHTML += `
+            <div class="report-card" style="border:1px solid #ccc; margin:10px; padding:10px; border-radius:8px;">
+                <p><b>Against:</b> ${r.against}</p>
+                <p><b>By:</b> ${r.by}</p>
+                <p><b>Reason:</b> ${r.reason}</p>
+                ${r.img && r.img.startsWith('http') ? `<a href="${r.img}" target="_blank">View Proof</a>` : "<p><i>No Image</i></p>"}
+                
+                ${r.reply ? `<div class="reply" style="background:#f0f0f0; padding:5px; margin-top:5px;"><b>Reply:</b> ${r.reply}</div>` : ""}
+
+                <div style="margin-top:10px;">
+                    ${currentRank >= 11 && (!r.reply || currentRank === 15) ? `<button onclick="replyReport(${i})">Reply</button>` : ""}
+                    ${currentRank >= 14 ? `<button onclick="deleteReport(${i})" style="color:red;">Delete</button>` : ""}
+                </div>
+            </div>`;
+        }
+    });
+}
+
+function replyReport(i){
+    let text = prompt("Enter your reply:");
+    if(!text) return;
+    reports[i].reply = text;
+    localStorage.setItem("reports", JSON.stringify(reports));
+    showReports("all");
+}
+// ================= TASK SYSTEM =================
+function getTasks(){
+    return JSON.parse(localStorage.getItem("tasks")) || [];
+}
+
+function saveTasks(tasks){
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask(){
+    let name = prompt("Confirm your name:");
+    let taskText = prompt("What is the task?");
+    let due = prompt("Due date (Optional):");
+
+    if(!name || !taskText) return;
+
+    let currentUser = localStorage.getItem("currentUser");
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+
+    if(name.toLowerCase() !== currentUser.toLowerCase()){
+        alert("You can only add tasks for yourself!");
+        return;
+    }
+
+    let tasks = getTasks();
+    tasks.push({
+        name: currentUser,
+        task: taskText,
+        due: due || "No deadline",
+        status: "⏳ Not started",
+        approvedBy: "-",
+        creatorRank: currentRank,
+        locked: false
+    });
+
+    saveTasks(tasks);
+    loadTasks();
+}
+
+function canChangeStatus(task){
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+    if(currentRank === 15) return true; // Owner can do anything
+    if(task.locked && currentRank < 14) return false; // Only Assistant Owners+ can edit locked tasks
+
+    let cr = task.creatorRank;
+    if(cr <= 5) return currentRank >= 6; // Leaders can approve members
+    if(cr <= 10) return currentRank >= 12; // Curators can approve leaders
+    if(cr <= 13) return currentRank >= 14; // Owners can approve admins
+    return false;
+}
+
+function loadTasks(){
+    let box = document.getElementById("taskTable");
+    if(!box) return;
+    box.innerHTML = "";
+
+    let tasks = getTasks();
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+
+    tasks.forEach((t, i) => {
+        let disabled = !canChangeStatus(t);
+        let statusOptions = ["⏳ Not started", "✏️ In progress", "⛔ Blocked", "👀 Under review", "✅ Completed"];
+
+        box.innerHTML += `
+        <tr>
+            <td>${t.name}</td>
+            <td>${t.task}</td>
+            <td>${t.approvedBy}</td>
+            <td>${t.due}</td>
+            <td>
+                ${disabled ? `<span>${t.status}</span>` : `
+                <select onchange="updateStatus(${i}, this.value)">
+                    ${statusOptions.map(opt => `<option value="${opt}" ${t.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                </select>`}
+            </td>
+            <td>
+                ${currentRank === 15 ? `<button onclick="deleteTask(${i})">❌</button>` : "-"}
+            </td>
+        </tr>`;
+    });
+}
+
+function updateStatus(i, newStatus){
+    let tasks = getTasks();
+    let task = tasks[i];
+    
+    if(!canChangeStatus(task)){
+        alert("You don't have permission to change this task!");
+        loadTasks(); // Reset view
+        return;
+    }
+
+    task.status = newStatus;
+    task.approvedBy = localStorage.getItem("currentUser");
+    if(newStatus === "✅ Completed") task.locked = true; // Auto-lock on completion
+
+    saveTasks(tasks);
+    loadTasks();
+}
+// OPEN ADMIN PANEL
+function openAdminPanel(){
+    let rank = parseInt(localStorage.getItem("currentRank"));
+    if(rank < 9) {
+        alert("Access Denied: Admins Only");
+        return;
+    }
+    
+    openPage("adminPage");
+
+    // Sections visibility based on rank
+    document.getElementById("viewSection").style.display = "block";
+    document.getElementById("moneySection").style.display = (rank >= 10) ? "block" : "none";
+    document.getElementById("addSection").style.display = (rank >= 11) ? "block" : "none";
+
+    loadAdminMembers();
+}
+
+// LOAD MEMBER LIST IN ADMIN PANEL
+function loadAdminMembers(){
+    let box = document.getElementById("adminMemberList");
+    if(!box) return;
+    box.innerHTML = "";
+
+    members.forEach((m, i) => {
+        box.innerHTML += `<p style="border-bottom:1px solid #eee; padding:5px;">
+            <b>${i}.</b> ${m.name} | <span style="color:blue;">${m.rank}</span> | Money: ${m.money}
+        </p>`;
+    });
+}
+
+// ADD/UPDATE MONEY (Rank 10+)
+function addMoney(){
+    let rank = parseInt(localStorage.getItem("currentRank"));
+    let i = parseInt(document.getElementById("memberIndex").value);
+    let amount = document.getElementById("depositAmount").value;
+
+    if(rank < 10) return alert("Rank 10+ required to update money");
+    if(!members[i]) return alert("Invalid Member Number");
+
+    members[i].money = amount;
+    localStorage.setItem("members", JSON.stringify(members));
+    loadAdminMembers();
+    alert("Money Updated Successfully!");
+}
+
+// ADD NEW MEMBER (Rank 11+)
+function addMember(){
+    let rank = parseInt(localStorage.getItem("currentRank"));
+    if(rank < 11) return alert("Rank 11+ required to add members");
+
+    let name = document.getElementById("newName").value.trim();
+    let rankName = document.getElementById("newRank").value.trim();
+    let password = document.getElementById("newPassword").value.trim();
+
+    if(!name || !rankName || !password) return alert("Fill all fields!");
+
+    // Check if user already exists
+    if(users.some(u => u.name.toLowerCase() === name.toLowerCase())) {
+        return alert("User already exists!");
+    }
+
+    let rankNum = getRankNumber(rankName);
+
+    // Push to members and users
+    members.push({ name, verified: false, rank: rankName, money: 0, war: 0 });
+    users.push({ name, password, rank: rankNum });
+
+    localStorage.setItem("members", JSON.stringify(members));
+    localStorage.setItem("users", JSON.stringify(users));
+
+    loadAdminMembers();
+    alert("New Member Added!");
+}
+// OPEN LEADER SECTION
+function openLeaderSection(id){
+    let rank = parseInt(localStorage.getItem("currentRank"));
+    if(rank < 6) return alert("No Permission");
+
+    document.getElementById("rankSection").style.display = "none";
+    document.getElementById("verifySection").style.display = "none";
+    document.getElementById(id).style.display = "block";
+
+    if(id === "rankSection") loadRankTable();
+    if(id === "verifySection") loadVerifyTable();
+}
+
+// LOAD RANK UPDATE TABLE
+function loadRankTable(){
+    let box = document.getElementById("rankTable");
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+    box.innerHTML = "";
+
+    members.forEach((m, i) => {
+        let targetRankNum = getRankNumber(m.rank);
+        
+        // Safety: Cannot change rank of someone equal or higher than you
+        let canEdit = (currentRank === 15) || (currentRank > targetRankNum);
+
+        box.innerHTML += `<tr>
+            <td>${m.name}</td>
+            <td class="rank rank-${targetRankNum}">${m.rank}</td>
+            <td>
+                ${canEdit ? `
+                <select onchange="changeRank(${i}, this.value)">
+                    <option value="">Change Rank</option>
+                    ${Object.keys(rankMap).map(r => `<option value="${r}">${r}</option>`).join('')}
+                </select>` : "---"}
+            </td>
+        </tr>`;
+    });
+}
+
+// CHANGE RANK LOGIC
+function changeRank(i, newVal){
+    if(!newVal) return;
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+    let targetUser = members[i];
+
+    if(currentRank <= getRankNumber(targetUser.rank) && currentRank !== 15){
+        alert("You cannot change the rank of your seniors or equals!");
+        loadRankTable();
+        return;
+    }
+
+    members[i].rank = newVal;
+    
+    // Update rank in users array too
+    let uIndex = users.findIndex(u => u.name === targetUser.name);
+    if(uIndex !== -1) users[uIndex].rank = getRankNumber(newVal);
+
+    localStorage.setItem("members", JSON.stringify(members));
+    localStorage.setItem("users", JSON.stringify(users));
+    
+    loadRankTable();
+    alert("Rank Updated!");
+}
+
+// VERIFICATION LOGIC
+function loadVerifyTable(){
+    let box = document.getElementById("verifyTable");
+    box.innerHTML = "";
+
+    members.forEach((m, i) => {
+        box.innerHTML += `<tr>
+            <td>${m.name}</td>
+            <td style="color: ${m.verified ? 'green' : 'red'}">${m.verified ? "YES" : "NO"}</td>
+            <td>
+                <select onchange="changeVerify(${i}, this.value)">
+                    <option value="">Select</option>
+                    <option value="true">Verify (YES)</option>
+                    <option value="false">Unverify (NO)</option>
+                </select>
+            </td>
+        </tr>`;
+    });
+}
+
+function changeVerify(i, val){
+    if(!val) return;
+    members[i].verified = (val === "true");
+    localStorage.setItem("members", JSON.stringify(members));
+    loadVerifyTable();
+    alert("Verification Status Updated!");
+}
+// ================= DELETE TASK (Add this) =================
+function deleteTask(i){
+    let currentRank = parseInt(localStorage.getItem("currentRank"));
+    if(currentRank !== 15){
+        alert("Only Owner can delete tasks!");
+        return;
+    }
+
+    if(confirm("Are you sure you want to delete this task?")){
+        let tasks = getTasks();
+        tasks.splice(i, 1);
+        saveTasks(tasks);
+        loadTasks();
+    }
+}
+let dbBtn = document.getElementById("dbBtn");
+if(dbBtn){
+  let currentRank = parseInt(localStorage.getItem("currentRank")) || 0;
+
+  dbBtn.style.display = (currentRank === 15) ? "block" : "none";
+}
+if(dbBtn){
+  dbBtn.style.display = (rank === 15) ? "block" : "none";
+}
+function addLog(text){
+  let logs = JSON.parse(localStorage.getItem("dbLogs")) || [];
+
+  logs.push({
+    text: text,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("dbLogs", JSON.stringify(logs));
+}
+function loadLogs(){
+
+  let box = document.getElementById("dbLogs");
+  if(!box) return;
+
+  let logs = JSON.parse(localStorage.getItem("dbLogs")) || [];
+
+  box.innerHTML = "";
+
+  logs.slice().reverse().forEach(l=>{
+    box.innerHTML += `
+      <div style="padding:8px; border-bottom:1px solid #555;">
+        🕒 ${l.time}<br>
+        ⚡ ${l.text}
+      </div>
+    `;
+  });
+
 }
