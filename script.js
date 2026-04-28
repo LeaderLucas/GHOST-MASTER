@@ -658,3 +658,62 @@ function loadLogs(){
   });
 
 }
+// DATABASE BUTTON CONTROL
+window.addEventListener("load", function(){
+
+  let dbBtn = document.getElementById("dbBtn");
+  let rank = parseInt(localStorage.getItem("currentRank")) || 0;
+
+  if(dbBtn){
+    dbBtn.style.display = (rank === 15) ? "block" : "none";
+  }
+
+});
+// AUTO CLICK TRACKING
+document.addEventListener("click", function(e){
+
+  let user = localStorage.getItem("currentUser");
+  let rank = localStorage.getItem("currentRank");
+
+  if(!user) return;
+
+  let el = e.target;
+
+  if(el.tagName === "BUTTON"){
+
+    let text = el.innerText || "Unknown";
+
+    saveLog(`${user} (Rank ${rank}) clicked: ${text}`);
+  }
+
+});
+function saveLog(text){
+
+  let logs = JSON.parse(localStorage.getItem("dbLogs")) || [];
+
+  logs.push({
+    text: text,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("dbLogs", JSON.stringify(logs));
+}
+function loadLogs(){
+
+  let box = document.getElementById("dbLogs");
+  if(!box) return;
+
+  let logs = JSON.parse(localStorage.getItem("dbLogs")) || [];
+
+  box.innerHTML = "";
+
+  logs.slice().reverse().forEach(l=>{
+    box.innerHTML += `
+      <div class="log-card">
+        🕒 ${l.time}<br>
+        ⚡ ${l.text}
+      </div>
+    `;
+  });
+
+}
